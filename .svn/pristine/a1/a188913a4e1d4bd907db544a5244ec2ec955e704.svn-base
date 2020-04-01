@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.wanding.face">
+
+    <!-- 网络请求权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Zxing扫描权限 -->
+    <uses-permission android:name="android.permission.CAMERA"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.FLASHLIGHT"/>
+
+    <!--写入扩展存储，向扩展卡写入数据，用于写入缓存定位数据-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!--外存储读权限，构建语法需要用到此权限 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <!--用于读取手机当前的状态-->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!--读取联系人权限，上传联系人需要用到此权限 -->
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <!--用于访问网络，网络定位需要上网-->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!--获取运营商信息，用于支持提供运营商信息相关的接口-->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <!--用于访问wifi网络信息，wifi信息会用于进行网络定位-->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!--这个权限用于获取wifi的获取权限，wifi信息会用来进行网络定位-->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
+
+    <!-- GPS定位权限 用于进行网络定位-->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!--用于访问GPS定位-->
+    <!--手机定位信息，用来为语义等功能提供定位，提供更精准的服务-->
+    <!--定位信息是敏感信息，可通过Setting.setLocationEnable(false)关闭定位请求 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- 星POS打印权限 -->
+    <uses-permission android:name="android.permission.MANAGE_NEWLAND"/>
+    <uses-permission android:name="android.permission.MANAGE_NEWLANDUART3"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <!-- 百度语音合成 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
+
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
+    <!-- 8.0版本安装权限  -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="true" />
+
+    <application
+        android:name=".App"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:largeHeap="true"
+        >
+        <!-- 开机自启动广播 -->
+        <receiver
+            android:name=".MyReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+            </intent-filter>
+        </receiver>
+        <!-- Android6.0以上文件的临时读写 -->
+        <!-- android:authorities="${applicationId}.provider":根据您控制的域将属性设置为URI权限-->
+        <!--android:exported="false":FileProvider不需要公开-->
+        <!--android:grantUriPermissions="true":允许您授予对文件的临时访问权限 -->
+        <provider
+            android:name="com.wanding.face.UpdateApkFileProvider"
+            android:authorities="${applicationId}.updateFileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name=".WelComeActivity"
+            android:screenOrientation="sensor"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".InputAmountActivity"
+            android:screenOrientation="portrait"
+            ></activity>
+        <activity
+            android:name=".LoginActivity"
+            android:screenOrientation="portrait"
+            ></activity>
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            ></activity>
+        <activity
+            android:name=".BrushFaceActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.PayStateActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".MenuManageActivity"
+            android:screenOrientation="sensor"
+            android:launchMode="singleTask"
+            >
+        </activity>
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".jiabo.device.activity.DeviceBaseActivity"
+            android:screenOrientation="sensor"
+            android:theme="@android:style/Theme.Dialog"
+            >
+        </activity>
+        <activity
+            android:name=".jiabo.device.activity.BluetoothDeviceListActivity"
+            android:screenOrientation="sensor"
+            >
+        </activity>
+        <activity
+            android:name=".jiabo.device.activity.BluetoothActivity"
+            android:screenOrientation="sensor"
+            >
+        </activity>
+        <activity
+            android:name=".activity.CloudPrintAuthActivity"
+            android:screenOrientation="sensor"
+            >
+        </activity>
+        <activity
+            android:name=".jiabo.device.activity.WifiDeviceListActivity"
+            android:screenOrientation="sensor"
+            >
+        </activity>
+        <!--<activity
+            android:name=".activity.PrintDeviceActivity"
+            android:screenOrientation="sensor">
+        </activity>-->
+        <activity
+            android:name=".activity.OrderListActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.OrderDetailsActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.RefundActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.ShiftActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.ShiftRecordActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.ShiftRecordDetailActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.StaffListActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.StaffAddActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.SummaryActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.AboutUsActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.MemberManageActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.CardVerificaActivity"
+            android:screenOrientation="sensor"
+            android:launchMode="singleTask"
+            >
+        </activity>
+        <activity
+            android:name=".activity.AuthManageActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.BrushFaceAuthActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.AuthConfirmActivity"
+            android:screenOrientation="sensor"
+            android:launchMode="singleTask"
+            >
+        </activity>
+        <activity
+            android:name=".activity.AuthRecodeListActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.AuthOrderDetailsActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.EnterPasswdActivity"
+            android:screenOrientation="sensor"
+            android:launchMode="singleTask"
+            >
+        </activity>
+        <activity
+            android:name=".activity.ScanQrcodeActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.ModifyPasswdActivity"
+            android:screenOrientation="sensor">
+        </activity>
+        <activity
+            android:name=".activity.PermissionsSettingActivity"
+            android:screenOrientation="sensor">
+        </activity>
+
+
+        <activity
+            android:name=".ParameterSettingActivity"
+            android:screenOrientation="sensor">
+        </activity>
+
+
+
+        <activity
+            android:name=".facetest.IFSMainActivity"
+            android:screenOrientation="sensor">
+            <!--<intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>-->
+        </activity>
+        <activity
+            android:name=".facetest.IFSExampleActivity"
+            android:screenOrientation="sensor" />
+        <activity
+            android:name=".facetest.IFSFactoryTestActivity"
+            android:screenOrientation="sensor" />
+
+    </application>
+
+</manifest>

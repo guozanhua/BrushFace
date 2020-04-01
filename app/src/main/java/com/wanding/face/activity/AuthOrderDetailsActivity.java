@@ -1,0 +1,634 @@
+package com.wanding.face.activity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.wanding.face.App;
+import com.wanding.face.BaseActivity;
+import com.wanding.face.Constants;
+import com.wanding.face.NitConfig;
+import com.wanding.face.R;
+import com.wanding.face.bean.AuthRecodeListReqData;
+import com.wanding.face.bean.AuthRecodeListResData;
+import com.wanding.face.bean.AuthRefreshOrderStateReqData;
+import com.wanding.face.bean.UserBean;
+import com.wanding.face.bean.WdPreAuthHistoryVO;
+import com.wanding.face.httputil.HttpURLConnectionUtil;
+import com.wanding.face.httputil.NetworkUtils;
+import com.wanding.face.payutil.QueryParamsReqUtil;
+import com.wanding.face.print.USBPrintTextUtil;
+import com.wanding.face.utils.DateTimeUtil;
+import com.wanding.face.utils.DecimalUtil;
+import com.wanding.face.utils.FastJsonUtil;
+import com.wanding.face.utils.GsonUtils;
+import com.wanding.face.utils.ToastUtil;
+import com.wanding.face.utils.Utils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.ViewInject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**  预授权订单详情界面 */
+@ContentView(R.layout.activity_auth_order_details)
+public class AuthOrderDetailsActivity extends BaseActivity implements OnClickListener {
+
+
+	@ViewInject(R.id.menu_title_imageView)
+	ImageView imgBack;
+	@ViewInject(R.id.menu_title_layout)
+	LinearLayout titleLayout;
+	@ViewInject(R.id.menu_title_tvTitle)
+	TextView tvTitle;
+	@ViewInject(R.id.menu_title_imgTitleImg)
+	ImageView imgTitleImg;
+	@ViewInject(R.id.menu_title_tvOption)
+	TextView tvOption;
+
+	@ViewInject(R.id.auth_order_details_imgAuthState)
+	ImageView imgAuthState;
+	@ViewInject(R.id.auth_order_details_tvAuthState)
+	TextView tvAuthState;
+
+	@ViewInject(R.id.auth_order_details_tvAuthOrderMoney)
+	TextView tvAuthOrderMoney;
+
+	@ViewInject(R.id.auth_order_details_layoutAuthConSumMoney)
+	RelativeLayout layoutAuthConSumMoney;
+	@ViewInject(R.id.auth_order_details_tvAuthConSumMoney)
+	TextView tvAuthConSumMoney;
+	@ViewInject(R.id.auth_order_details_viewAuthConSumMoney)
+	View viewAuthConSumMoney;
+    @ViewInject(R.id.auth_order_details_layoutAuthRefundAmount)
+    RelativeLayout layoutAuthRefundAmount;
+    @ViewInject(R.id.auth_order_details_tvAuthRefundAmount)
+    TextView tvAuthRefundAmount;
+    @ViewInject(R.id.auth_order_details_viewAuthRefundAmount)
+    View viewAuthRefundAmount;
+
+	@ViewInject(R.id.auth_order_details_tvAuthPayType)
+	TextView tvAuthPayType;
+	@ViewInject(R.id.auth_order_details_tvStatus)
+	TextView tvPayStatus;
+	@ViewInject(R.id.auth_order_details_tvAuthPayCreateTime)
+	TextView tvAuthPayCreateTime;
+	@ViewInject(R.id.auth_order_details_tvAuthOrderId)
+	TextView tvAuthOrderId;
+	@ViewInject(R.id.auth_order_details_tvChannelOrderNo)
+	TextView tvChannelOrderNo;
+	@ViewInject(R.id.auth_order_details_layoutOldAuthOrderId)
+	RelativeLayout layoutOldAuthOrderId;
+	@ViewInject(R.id.auth_order_details_tvOldAuthOrderId)
+	TextView tvOldAuthOrderId;
+	@ViewInject(R.id.auth_order_details_tvGoodsdes)
+	TextView tvGoodsdes;
+
+
+
+	
+
+	@ViewInject(R.id.auth_order_details_btPrint)
+	Button btPrint;
+	@ViewInject(R.id.auth_order_details_btAuthCancel)
+	Button btAuthCancel;
+	@ViewInject(R.id.auth_order_details_btAuthConfrim)
+	Button btAuthConfrim;
+	@ViewInject(R.id.auth_order_details_btAuthConfirmCancel)
+	Button btAuthConfirmCancel;
+
+
+
+	private UserBean userBean;
+	private WdPreAuthHistoryVO authOrder;//订单对象
+    private List<WdPreAuthHistoryVO> list = new ArrayList<WdPreAuthHistoryVO>();
+
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		imgBack.setVisibility(View.VISIBLE);
+		imgBack.setImageDrawable(ContextCompat.getDrawable(activity,R.drawable.back_icon));
+		tvTitle.setText("交易详情");
+		imgTitleImg.setVisibility(View.GONE);
+		tvOption.setVisibility(View.GONE);
+		tvOption.setText("刷新");
+
+
+
+		Intent intent = getIntent();
+		userBean = (UserBean) intent.getSerializableExtra("userBean");
+		authOrder = (WdPreAuthHistoryVO) intent.getSerializableExtra("authOrder");
+
+
+		initListener();
+
+
+
+
+
+		
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		getRecodeList(1,1);
+	}
+	
+	@Override
+    protected void onDestroy() {
+        super.onDestroy();
+		Log.e(TAG, "释放资源成功");
+		list = null;
+    }
+
+
+	
+	/** 
+	 * 初始化界面控件
+	 */
+	private void initListener(){
+
+		imgBack.setOnClickListener(this);
+		tvOption.setOnClickListener(this);
+		btPrint.setOnClickListener(this);
+
+		btAuthCancel.setOnClickListener(this);
+		btAuthConfrim.setOnClickListener(this);
+		btAuthConfirmCancel.setOnClickListener(this);
+	}
+
+
+	/** 界面数据初始化 */
+    private void updateViewData(){
+		btAuthCancel.setVisibility(View.GONE);
+		btAuthConfrim.setVisibility(View.GONE);
+		btAuthConfirmCancel.setVisibility(View.GONE);
+    	//预授权状态1:预授权，2：预授权撤销，3：预授权完成,4：预授权完成撤销
+		String payAuthStatusStr = authOrder.getPayAuthStatus();
+		if(Utils.isNotEmpty(payAuthStatusStr))
+		{
+			if("1".equals(payAuthStatusStr))
+			{
+				imgAuthState.setImageDrawable(ContextCompat.getDrawable(activity,R.drawable.auth_icon));
+				tvAuthState.setText("预授权");
+				//显示预授权撤销按钮和预授权完成按钮
+				btAuthCancel.setVisibility(View.VISIBLE);
+				btAuthConfrim.setVisibility(View.VISIBLE);
+			}else if("2".equals(payAuthStatusStr))
+			{
+				imgAuthState.setImageDrawable(ContextCompat.getDrawable(activity,R.drawable.auth_cancel_icon));
+				//显示预授权撤销按钮
+				tvAuthState.setText("预授权撤销");
+			}else if("3".equals(payAuthStatusStr))
+			{
+				imgAuthState.setImageDrawable(ContextCompat.getDrawable(activity,R.drawable.auth_confirm_icon));
+				tvAuthState.setText("预授权完成");
+				//显示预授权消费金额
+				layoutAuthConSumMoney.setVisibility(View.VISIBLE);
+				viewAuthConSumMoney.setVisibility(View.VISIBLE);
+				//显示预授权完成撤销按钮
+				btAuthConfirmCancel.setVisibility(View.VISIBLE);
+			}else if("4".equals(payAuthStatusStr))
+			{
+				imgAuthState.setImageDrawable(ContextCompat.getDrawable(activity,R.drawable.auth_confirm_cancel_icon));
+				tvAuthState.setText("预授权完成撤销");
+				//显示预授权消费金额
+				layoutAuthConSumMoney.setVisibility(View.VISIBLE);
+				viewAuthConSumMoney.setVisibility(View.VISIBLE);
+				//显示预授权退款金额
+				layoutAuthRefundAmount.setVisibility(View.VISIBLE);
+				viewAuthRefundAmount.setVisibility(View.VISIBLE);
+				//显示原授权单号
+				layoutOldAuthOrderId.setVisibility(View.VISIBLE);
+			}
+		}else{
+
+		}
+		//押金金额（预授权金额）
+		String orderAmtStr = authOrder.getOrderAmt();
+		String orderAmt = "";
+		if(Utils.isNotEmpty(orderAmtStr)){
+			orderAmt = DecimalUtil.StringToPrice(orderAmtStr);
+		}
+		tvAuthOrderMoney.setText(String.format(getResources().getString(R.string.order_list_item_orderPayTotal),orderAmt));
+		//消费金额（预授权完成金额）
+		String consumeFeeStr = authOrder.getConsumeFee();
+		String consumeFee = "";
+		if(Utils.isNotEmpty(consumeFeeStr)){
+			consumeFee = DecimalUtil.StringToPrice(consumeFeeStr);
+		}
+		tvAuthConSumMoney.setText(String.format(getResources().getString(R.string.order_list_item_orderPayTotal),consumeFee));
+		//退款金额（预授权完成撤销金额）
+		String refundFeeStr = authOrder.getRefundFee();
+		String refundFee = "";
+		if(Utils.isNotEmpty(refundFeeStr)){
+			refundFee = DecimalUtil.StringToPrice(refundFeeStr);
+		}
+		tvAuthRefundAmount.setText(String.format(getResources().getString(R.string.order_list_item_orderPayTotal),refundFee));
+		//支付方式
+		String preWayStr = authOrder.getPreWay();
+		String preWay = "未知";
+		if(Utils.isNotEmpty(preWayStr)){
+			preWay = preWayStr;
+		}
+		tvAuthPayType.setText(Constants.getPayWay("0",preWay,false));
+		//日期时间
+        String payTime ="";
+        if(Utils.isNotEmpty(payAuthStatusStr)){
+            if("1".equals(payAuthStatusStr))
+            {
+                Long payTimeStr = authOrder.getPreTime();
+                if(payTimeStr !=null){
+                    payTime = DateTimeUtil.stampToFormatDate(payTimeStr, "yyyy-MM-dd HH:mm:ss");
+                }
+            }else if("2".equals(payAuthStatusStr))
+            {
+                Long payTimeStr = authOrder.getTxnEndTs();
+                if(payTimeStr !=null){
+                    payTime = DateTimeUtil.stampToFormatDate(payTimeStr, "yyyy-MM-dd HH:mm:ss");
+                }
+            }else if("3".equals(payAuthStatusStr))
+            {
+                Long payTimeStr = authOrder.getTxnEndTs();
+                if(payTimeStr !=null){
+                    payTime = DateTimeUtil.stampToFormatDate(payTimeStr, "yyyy-MM-dd HH:mm:ss");
+                }
+            }else if("4".equals(payAuthStatusStr))
+            {
+                Long payTimeStr = authOrder.getTxnEndTs();
+                if(payTimeStr !=null){
+                    payTime = DateTimeUtil.stampToFormatDate(payTimeStr, "yyyy-MM-dd HH:mm:ss");
+                }
+            }
+        }
+
+		tvAuthPayCreateTime.setText(payTime);
+		//授权单号
+		String orderIdStr = authOrder.getMchntOrderNo();
+		String orderId = "";
+		if(Utils.isNotEmpty(orderIdStr)){
+			orderId = orderIdStr;
+		}
+		tvAuthOrderId.setText(orderId);
+		//渠道单号
+		String channelOrderNoStr = authOrder.getChannelOrderNo();
+		String channelOrderNo = "";
+		if(Utils.isNotEmpty(channelOrderNoStr)){
+			channelOrderNo = channelOrderNoStr;
+		}
+		tvChannelOrderNo.setText(channelOrderNo);
+		//原授权单号
+		String oldOrderIdStr = authOrder.getOrgOrderNo();
+		String oldOrderId = "";
+		if(Utils.isNotEmpty(oldOrderIdStr)){
+			oldOrderId = oldOrderIdStr;
+		}
+		tvOldAuthOrderId.setText(oldOrderId);
+		//商品描述
+		String goodsdesStr = authOrder.getGoodsdes();
+		String goodsdes = "";
+		if(Utils.isNotEmpty(goodsdesStr)){
+			goodsdes = goodsdesStr;
+		}
+		tvGoodsdes.setText(goodsdes);
+		//支付状态"0/1/2/5分别代表初始、成功、失败",支付中
+		Integer status_int = authOrder.getStatus();
+		String status = "未知";
+		if(status_int != null){
+			if(status_int == 0){
+				status = "初始订单";
+			}else if(status_int == 1){
+				status = "支付成功";
+			}else if(status_int == 2){
+				status = "支付失败";
+			}else if(status_int == 5){
+				status = "支付中";
+				tvOption.setVisibility(View.VISIBLE);
+				tvOption.setText("刷新");
+			}
+		}
+		tvPayStatus.setText(status);
+
+    }
+
+    /**
+	 * 获取交易详情
+	 */
+    private void getRecodeList(final int pageNum,final int pageNumCount){
+
+        showCustomDialog();
+
+        final String etSearchStr = authOrder.getMchntOrderNo();
+        final String startTimeStr = "";
+        final String endTimeStr = "";
+        //参数实体
+        final AuthRecodeListReqData reqData = QueryParamsReqUtil.queryAuthRecodeListReq(pageNum,pageNumCount,userBean,etSearchStr,startTimeStr,endTimeStr);
+
+        final String url = NitConfig.authRecodeListUrl;
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    String content = FastJsonUtil.toJSONString(reqData);
+                    Log.e("发起请求参数：", content);
+                    String content_type = HttpURLConnectionUtil.CONTENT_TYPE_JSON;
+                    String jsonStr = HttpURLConnectionUtil.doPos(url,content,content_type);
+                    Log.e("返回字符串结果：", jsonStr);
+                    int msg = NetworkUtils.MSG_WHAT_ONE;
+                    String text = jsonStr;
+                    sendMessage(msg,text);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    sendMessage(NetworkUtils.REQUEST_JSON_CODE,NetworkUtils.REQUEST_JSON_TEXT);
+                }catch (IOException e){
+                    e.printStackTrace();
+                    sendMessage(NetworkUtils.REQUEST_IO_CODE,NetworkUtils.REQUEST_IO_TEXT);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    sendMessage(NetworkUtils.REQUEST_CODE,NetworkUtils.REQUEST_TEXT);
+                }
+
+            };
+        }.start();
+    }
+
+	/**
+	 * 刷新订单状态
+	 */
+	private void updateOrderState(){
+
+		showWaitDialog();
+		//参数实体
+		String orderId = authOrder.getMchntOrderNo();
+		final AuthRefreshOrderStateReqData reqData = QueryParamsReqUtil.refreshOrderStateReq(userBean,orderId);
+
+		final String url = NitConfig.refreshOrderStateUrl;
+		Log.e("请求地址：", url);
+		new Thread(){
+			@Override
+			public void run() {
+				try {
+					String content = FastJsonUtil.toJSONString(reqData);
+					Log.e("发起请求参数：", content);
+					String content_type = HttpURLConnectionUtil.CONTENT_TYPE_JSON;
+					String jsonStr = HttpURLConnectionUtil.doPos(url,content,content_type);
+					Log.e("返回字符串结果：", jsonStr);
+					int msg = NetworkUtils.MSG_WHAT_TWO;
+					String text = jsonStr;
+					sendMessage(msg,text);
+				} catch (JSONException e) {
+					e.printStackTrace();
+					sendMessage(NetworkUtils.REQUEST_JSON_CODE,NetworkUtils.REQUEST_JSON_TEXT);
+				}catch (IOException e){
+					e.printStackTrace();
+					sendMessage(NetworkUtils.REQUEST_IO_CODE,NetworkUtils.REQUEST_IO_TEXT);
+				} catch (Exception e) {
+					e.printStackTrace();
+					sendMessage(NetworkUtils.REQUEST_CODE,NetworkUtils.REQUEST_TEXT);
+				}
+
+			};
+		}.start();
+	}
+
+	private void sendMessage(int what,String text){
+		Message msg = new Message();
+		msg.what = what;
+		msg.obj = text;
+		handler.sendMessage(msg);
+	}
+	private Handler handler =  new Handler(){
+		@Override
+		public void handleMessage(Message msg) {
+			String errorJsonText = "";
+			switch (msg.what) {
+				case NetworkUtils.MSG_WHAT_ONE:
+					String orderDetailJsonStr = (String) msg.obj;
+					orderDetailJsonStr(orderDetailJsonStr);
+					hideCustomDialog();
+					break;
+				case NetworkUtils.MSG_WHAT_TWO:
+					String refreshOrderStateStr = (String) msg.obj;
+					refreshOrderStateStr(refreshOrderStateStr);
+					hideWaitDialog();
+					break;
+				case NetworkUtils.REQUEST_JSON_CODE:
+					errorJsonText = (String) msg.obj;
+					ToastUtil.showText(activity,errorJsonText,1);
+					hideCustomDialog();
+					break;
+				case NetworkUtils.REQUEST_IO_CODE:
+					errorJsonText = (String) msg.obj;
+					ToastUtil.showText(activity,errorJsonText,1);
+					hideCustomDialog();
+					break;
+				case NetworkUtils.REQUEST_CODE:
+					errorJsonText = (String) msg.obj;
+					ToastUtil.showText(activity,errorJsonText,1);
+					hideCustomDialog();
+					break;
+				default:
+					break;
+			}
+		};
+	};
+
+	private void orderDetailJsonStr(String jsonStr){
+        try {
+            JSONObject job = new JSONObject(jsonStr);
+            String status = job.getString("status");
+            String message = job.getString("message");
+            if("200".equals(status)){
+                String dataJson = job.getString("data");
+                Gson gjson  =  GsonUtils.getGson();
+                java.lang.reflect.Type type = new TypeToken<AuthRecodeListResData>() {}.getType();
+                AuthRecodeListResData recodeResData = gjson.fromJson(dataJson, type);
+                List<WdPreAuthHistoryVO> recodeList = new ArrayList<WdPreAuthHistoryVO>();
+                //获取的list
+                recodeList = recodeResData.getOrderList();
+                list.clear();
+                list.addAll(recodeList);
+                if(list!=null&&list.size()>0){
+					authOrder = list.get(0);
+                    updateViewData();
+                }
+            }else{
+                if(Utils.isNotEmpty(message)){
+                    Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(activity, "查询失败！", Toast.LENGTH_LONG).show();
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+	}
+
+	private void refreshOrderStateStr(String jsonStr){
+		try{
+			Gson gjson  =  GsonUtils.getGson();
+			com.wanding.face.bean.AuthRefreshOrderStateResData resData = gjson.fromJson(jsonStr, com.wanding.face.bean.AuthRefreshOrderStateResData.class);
+			//return_code	响应码：“01”成功 ，02”失败，请求成功不代表业务处理成功
+			String return_codeStr = resData.getReturn_code();
+			//return_msg	返回信息提示，“支付成功”，“支付中”，“请求受限”等
+			String return_msgStr = resData.getReturn_msg();
+			//result_code	业务结果：“01”成功 ，02”失败 ，“03”支付中
+			String result_codeStr = resData.getResult_code();
+			String result_msgStr = resData.getResult_msg();
+			if("01".equals(return_codeStr)) {
+				if("01".equals(result_codeStr)){
+					//0/1/2/5分别代表初始、成功、失败",支付中
+					authOrder.setStatus(1);
+				}else if("03".equals(result_codeStr)){
+					if(Utils.isNotEmpty(result_msgStr)){
+						Toast.makeText(activity, result_msgStr, Toast.LENGTH_LONG).show();
+					}else{
+						Toast.makeText(activity, "查询失败！", Toast.LENGTH_LONG).show();
+
+					}
+					authOrder.setStatus(5);
+				}else{
+					if(Utils.isNotEmpty(result_msgStr)){
+						Toast.makeText(activity, result_msgStr, Toast.LENGTH_LONG).show();
+					}else{
+						Toast.makeText(activity, "查询失败！", Toast.LENGTH_LONG).show();
+
+					}
+					authOrder.setStatus(2);
+				}
+			}else{
+				if(Utils.isNotEmpty(return_msgStr)){
+					Toast.makeText(activity, return_msgStr, Toast.LENGTH_LONG).show();
+				}else{
+					Toast.makeText(activity, "查询失败！", Toast.LENGTH_LONG).show();
+				}
+				authOrder.setStatus(2);
+			}
+		}catch (Exception e){
+			e.printStackTrace();
+			ToastUtil.showText(activity,"获取支付状态结果返回错误！",1);
+			finish();
+		}
+		updateViewData();
+	}
+
+	private void startPrint(){
+
+		//打印
+//		USBPrinter.initPrinter(this);
+		USBPrintTextUtil.authOrderDetailText(userBean,authOrder);
+
+		/*if ( DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id] == null ||
+				!DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].getConnState() )
+		{
+			ToastUtil.showText( activity, getString( R.string.str_cann_printer ),1 );
+			return;
+		}
+		threadPool = ThreadPool.getInstantiation();
+		threadPool.addTask( new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				if ( DeviceConnFactoryManager.getDeviceConnFactoryManagers()[id].getCurrentPrinterCommand() == PrinterCommand.ESC )
+				{
+					JiaBoPrintTextUtil.authOrderDetailText(id,userBean,order);
+				} else {
+					mHandler.obtainMessage( PRINTER_COMMAND_ERROR ).sendToTarget();
+				}
+			}
+		} );*/
+	}
+
+	@Override
+	public void onClick(View v) {
+		Intent intent = null;
+		String authAction = "";
+		switch (v.getId()) {
+		case R.id.menu_title_imageView:
+			finish();
+			break;
+		case R.id.menu_title_tvOption:
+			if(Utils.isFastClick()){
+				return;
+			}
+			updateOrderState();
+			break;
+		case R.id.auth_order_details_btPrint:
+			if(Utils.isFastClick()){
+				return;
+			}
+			//支付状态"0/1/2/5分别代表初始、成功、失败",支付中
+			Integer status = authOrder.getStatus();
+			if(status != 1){
+				ToastUtil.showText(activity,"支付状态支付中或支付失败不支持补打小票！",1);
+				return;
+			}
+			startPrint();
+			break;
+		case R.id.auth_order_details_btAuthCancel:
+			if(Utils.isFastClick()){
+				return;
+			}
+			intent = new Intent();
+			intent.setClass(activity,EnterPasswdActivity.class);
+			intent.putExtra("userBean",userBean);
+			intent.putExtra("authOrder",authOrder);
+			intent.putExtra("action",Constants.ACTION_PASSWD_AUTH_CANCEL);
+			startActivity(intent);
+			break;
+		case R.id.auth_order_details_btAuthConfrim:
+			if(Utils.isFastClick()){
+				return;
+			}
+			authAction = "3";
+			intent = new Intent();
+			intent.setClass(activity,AuthConfirmActivity.class);
+			intent.putExtra("userBean",userBean);
+			intent.putExtra("authOrder",authOrder);
+			intent.putExtra("authAction",authAction);
+			startActivity(intent);
+			break;
+		case R.id.auth_order_details_btAuthConfirmCancel:
+			if(Utils.isFastClick()){
+				return;
+			}
+			intent = new Intent();
+			intent.setClass(activity,EnterPasswdActivity.class);
+			intent.putExtra("userBean",userBean);
+            intent.putExtra("authOrder",authOrder);
+			intent.putExtra("action",Constants.ACTION_PASSWD_AUTH_CONFIRM_CANCEL);
+			startActivity(intent);
+
+
+
+			break;
+			default:
+				break;
+
+
+
+		}
+	}
+}

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/wxface_btDemoTest"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_margin="10dp"
+        android:background="@drawable/register_face_confirm_btn"
+        android:text="微信刷脸DEMO"
+        android:textColor="#fff"
+        android:textSize="30sp"
+        android:visibility="gone"
+        />
+    <Button
+        android:id="@+id/wxface_btTest"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@drawable/register_face_confirm_btn"
+        android:text="微信刷脸"
+        android:textColor="#fff"
+        android:textSize="30sp"
+        android:visibility="gone"/>
+
+    <com.youth.banner.Banner
+        android:id="@+id/main_banner"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:banner_default_image="@drawable/banner01_icon"
+        app:image_scale_type="fit_xy"
+        />
+
+    <LinearLayout
+        android:id="@+id/main_layoutMoney"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:orientation="vertical"
+        android:background="@drawable/button_style_0dp"
+        android:gravity="center"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/main_title"
+            android:textColor="@color/white_ffffff"
+            android:textSize="@dimen/TextSize30"
+            />
+        <EditText
+            android:id="@+id/main_etMoney"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:hint="@string/main_etMoney"
+            android:textColorHint="@color/white_ffffff"
+            android:text=""
+            android:textColor="@color/white_ffffff"
+            android:textSize="@dimen/TextSize20"
+            android:gravity="center"
+            android:background="@null"
+            />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,96 @@
+apply plugin: 'com.android.application'
+
+android {
+
+    //添加应用签名文件配置(注意：signingConfigs必须放在defaultConfig和buildTypes前面，否则编译报错)
+    signingConfigs {
+        //debug模式不添加
+        debug{}
+        release{
+            storeFile file("asappkey.jks")
+            storePassword "123456789"
+            keyAlias "china"
+            keyPassword "123456789"
+        }
+    }
+
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "com.wanding.face"
+        minSdkVersion 19
+        targetSdkVersion 27
+//        versionCode 1
+//        versionName "1.1.0"
+        versionCode 6
+        versionName "1.1.5"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            //设置是否使用proguard进行代码混淆
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            //添加应用签名文件配置
+            signingConfig signingConfigs.release
+        }
+    }
+
+    /**
+     * lib目录资源中包含.aar资源文件，必须配置此项
+     */
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:27.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    //xutils该项目主要用于加载控件 https://www.cnblogs.com/minghualiyan/p/5553306.html
+    implementation 'org.xutils:xutils:3.5.0'
+    /**
+     * com.trycatch.android:mysnackbar:1.2.2:从顶部弹出的SnackBar,该包使用时当前版本23以下需要添加CoordinatorLayout的依赖包
+     * 即com.android.support:design:27.1.1 android控件新特性，包括侧滑菜单
+     */
+    implementation 'com.trycatch.android:mysnackbar:1.2.2'
+    implementation 'com.android.support:design:27.1.1'
+    //人脸SDK
+    implementation(name: 'wxfacepay-release_2.11.288.834', ext: 'aar')
+    //百度语音
+    implementation files('libs/com.baidu.tts_2.3.2.20180713_6101c2a.jar')
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.alibaba:fastjson:1.2.58'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    /**
+     * 轮播图banner
+     */
+    implementation 'com.youth.banner:banner:1.4.10'
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    //佳博打印机
+    implementation files('libs/gprintersdkv1.jar')
+    /**
+     * 进度条
+     * https://blog.csdn.net/developer_jiangqq/article/details/49612399
+     */
+    implementation 'com.wang.avi:library:1.0.0'
+    implementation'com.nineoldandroids:library:2.4.0'
+    /**
+     * 加载gif图片
+     * https://blog.csdn.net/xiaomai949804781/article/details/52872409
+     * https://blog.csdn.net/weixin_34296641/article/details/90219064
+     */
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.7'
+    implementation 'com.github.symahllOschina:SmyAppResLib:1.1.3'
+    /**
+     * 键盘资源包
+     */
+    implementation(name: 'paykeyboard-release1.21', ext: 'aar')
+
+}

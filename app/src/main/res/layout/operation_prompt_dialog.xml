@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" 
+    android:background="@color/white_ffffff"
+    >
+    <!-- 顶部标题 -->
+	<!-- 中间提示内容 -->
+	<LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical"
+	    android:gravity="center_vertical"
+	    android:paddingLeft="20dp"
+	    android:paddingRight="20dp"
+	    >
+	    <TextView
+	        android:id="@+id/op_prompt_dialog_tvMsg"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text=" 是否选择该设备为默认打印机!"
+	        android:textSize="@dimen/TextSize16"
+	        android:layout_marginTop="15dp"
+	        android:layout_gravity="center"
+	        android:layout_marginBottom="15dp"
+	        ></TextView>
+	</LinearLayout>
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="50dp"
+	    android:orientation="horizontal"
+	    android:paddingLeft="20dp"
+	    android:paddingRight="20dp"
+	    android:paddingTop="10dp"
+	    >
+	   
+	    <Button
+	        android:id="@+id/op_prompt_dialog_btCancel"
+	        android:layout_width="0dp"
+	        android:layout_height="30dp"
+	        android:layout_weight="1"
+	        android:text="取    消"
+	        android:textSize="@dimen/TextSize16"
+	        android:textColor="@color/blue_409EFF"
+	        android:background="@drawable/bt_white_radius5"
+	        ></Button>
+	     <Button
+	        android:id="@+id/op_prompt_dialog_btOk"
+	        android:layout_width="0dp"
+	        android:layout_height="30dp"
+	        android:layout_weight="1"
+	        android:text="确认"
+	        android:textSize="@dimen/TextSize16"
+	        android:textColor="@color/white_ffffff"
+	        android:background="@drawable/bt_blue_radius5"
+	        android:layout_marginLeft="20dp"
+	        ></Button>
+	</LinearLayout>
+</LinearLayout>

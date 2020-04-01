@@ -1,0 +1,154 @@
+<resources>
+    <string name="app_name">悦收银</string>
+
+    <string name="login_etuser_hint">请输入设备账号</string>
+    <string name="login_etpasswd_hint">请输入密码</string>
+    <string name="login_text">登录</string>
+
+    <string name="main_title">欢迎使用悦收银</string>
+    <string name="main_etMoney">等待输入金额</string>
+    <string name="brush_san_pay">请将付款码对准摄像头</string>
+    <string name="brush_san_verifica">请将核销码对准摄像头</string>
+    <string name="auth_code_hint">请将原授权码对准摄像头</string>
+    <string name="brush_face_brush_face_pay">刷脸支付</string>
+    <string name="brush_face_sum_money_title">付款金额</string>
+    <string name="brush_face_select_pay_type">扫码支付</string>
+    <string name="brush_face_close_scan_pay">关闭扫码支付</string>
+
+
+
+    <string name="pay_state_success">交易成功</string>
+    <string name="pay_state_fail">交易失败</string>
+    <string name="pay_state_unknown">交易未知</string>
+    <string name="confirm">确认</string>
+    <string name="complete">完成</string>
+    <string name="MerName">万鼎科技</string>
+
+    <string name="xlistview_header_hint_normal">下拉刷新</string>
+    <string name="xlistview_header_hint_ready">松开刷新数据</string>
+    <string name="xlistview_header_hint_loading">正在加载...</string>
+    <string name="xlistview_header_last_time">最近更新：</string>
+    <string name="xlistview_footer_hint_normal">查看更多</string>
+    <string name="xlistview_footer_hint_ready">松开载入更多</string>
+    <string name="xlistview_footer_hint_nomore">没有更多</string>
+
+    <string name="order_list_item_orderId">订单号：%1$s</string>
+    <string name="order_list_item_orderPayTime">2019-08-21 10:21:21</string>
+    <string name="order_list_item_orderPayTotal">￥%1$s</string>
+    <string name="order_list_item_orderPayStatus">支付成功</string>
+    <string name="order_list_top_pop_menu1">本月（不包含当天）</string>
+    <string name="order_list_top_pop_menu2">昨天</string>
+    <string name="order_list_top_pop_menu3">当天</string>
+    <string name="order_list_pop_menu1">交易明细（本月）</string>
+    <string name="order_list_pop_menu2">交易明细（昨天）</string>
+    <string name="order_list_pop_menu3">交易明细（当天）</string>
+
+    <string name="shift_paid_in_amount">实收金额（元）</string>
+    <string name="shift_period_of_time"></string>
+    <string name="shift_trade_statistics">收款统计</string>
+    <string name="shift_trade_number">笔数</string>
+    <string name="shift_trade_total">金额</string>
+    <string name="ali_text">支付宝</string>
+    <string name="ali_refund_text">支付宝退款</string>
+    <string name="wx_text">微信</string>
+    <string name="wx_refund_text">微信退款</string>
+    <string name="best_text">翼支付</string>
+    <string name="best_refund_text">翼支付退款</string>
+    <string name="bank_pay_text">银行卡消费</string>
+    <string name="bank_refund_text">银行卡退款</string>
+    <string name="unionpay_text">银联二维码</string>
+    <string name="unionpay_refund_text">银联二维码退款</string>
+    <string name="shift_exit">交班退出</string>
+    <string name="shift_recode">交班记录</string>
+
+    <string name="summary_effective_amount_y">有效金额（元）</string>
+    <string name="summary_trade_number_b">总笔数（笔）</string>
+    <string name="summary_trade_type">交易类型</string>
+    <string name="summary_trade_number">总笔数</string>
+    <string name="summary_effective_amount">有效金额</string>
+    <string name="bank_text">银行卡消费</string>
+
+    <string name="device_list_id">终端编号</string>
+    <string name="device_list_online_state">在线状态</string>
+    <string name="device_list_terminal_state">终端状态</string>
+    <string name="device_list_setDefault">绑定设备</string>
+
+
+    <string name="setting_bus_name">万鼎科技</string>
+    <string name="setting_device_name">brush-face-app</string>
+
+    <string name="setting_print_device">打印机</string>
+    <string name="setting_no_print_device">未设置</string>
+    <string name="bluetooth_device">蓝牙设备</string>
+    <string name="scan_bluetooth_device">搜索蓝牙设备</string>
+    <string name="str_title_newdev">未配对</string>
+    <string name="str_title_pairedev">已配对</string>
+    <string name="none_paired">没有已配对设备</string>
+    <string name="none_bluetooth_device_found">没有找到蓝牙设备</string>
+    <string name="setting_connect_type">选择连接方式</string>
+    <string name="setting_no_connect_type">未选择</string>
+    <string name="setting_usb_connect_type">USB</string>
+    <string name="setting_bluetooth_connect_type">蓝牙</string>
+    <string name="setting_serialport_connect_type">串口</string>
+    <string name="setting_wifi_connect_type">WIFI云</string>
+    <string name="printer_device_manage">云设备管理</string>
+    <string name="cloud_print_auth_hint">提示：商户编号和 API 密钥需先进入佳博网络云打印系统（http://cp.poscom.cn）注册账户并验证通过后，登录系统在“系统集成”->“API 集成”获取,如图所示：</string>
+
+    <string name="setting_sign">签到</string>
+    <string name="setting_order_list">交易明细</string>
+    <string name="setting_shift">交接班</string>
+    <string name="setting_summary">汇总</string>
+    <string name="setting_auth">预授权</string>
+    <string name="setting_auth_manage">预授权管理</string>
+    <string name="setting_member">会员</string>
+    <string name="setting">设置</string>
+    <string name="setting_passwd">密码设置</string>
+    <string name="setting_permissions">权限设置</string>
+    <string name="setting_banner">广告设置</string>
+    <string name="setting_system">系统设置</string>
+    <string name="setting_about_us">关于我们</string>
+    <string name="setting_exit">退出登录</string>
+
+    <string name="member_manage">会员管理</string>
+    <string name="card_verifica">卡券核销</string>
+    <string name="member_top_up">会员充值</string>
+
+    <string name="auth_manage_auth">预授权</string>
+    <string name="auth_total_fee">授权金额</string>
+    <string name="auth_brush_face_auth">刷脸预授权</string>
+    <string name="auth_manage_authCancel">预授权撤销</string>
+    <string name="auth_manage_authConfirm">预授权完成</string>
+    <string name="auth_manage_authConfirmCancel">预授权完成撤销</string>
+
+    <string name="auth_manage_authRecode">预授权交易</string>
+
+
+
+
+
+    <string name="str_printer_conn_normal">打印机连接正常</string>
+    <string name="str_printer_out_of_paper">打印机缺纸</string>
+    <string name="str_printer_open_cover">打印机开盖</string>
+    <string name="str_printer_error">打印机出错</string>
+
+
+    <string name="str_cann_printer">请先连接打印机</string>
+    <string name="not_found_device">未找到可用设备</string>
+    <string name="str_conn_state_disconnect">未连接</string>
+    <string name="str_conn_state_connecting">连接中</string>
+    <string name="str_conn_state_connected">已连接</string>
+    <string name="str_conn_fail">连接失败！</string>
+    <string name="str_choice_printer_command">请选择正确的打印机指令</string>
+
+    <string name="str_printer_printmode_esc">打印模式:ESC</string>
+    <string name="str_printer_printmode_tsc">打印模式:TSC</string>
+    <string name="str_printer_printmode_cpcl">打印模式:CPCL</string>
+    <string name="str_continuityprinter">连续打印:</string>
+
+    <string name="str_state">状态：</string>
+    <string name="str_low_power">电量：低电量</string>
+    <string name="str_amid_power">电量：中电量</string>
+    <string name="str_high_power">电量：高电量</string>
+    <string name="str_charging">正在充电</string>
+    <string name="str_disconnect_success">打印机断开连接</string>
+</resources>

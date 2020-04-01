@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+    <include layout="@layout/menu_title_layout"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        >
+        <com.wanding.face.view.ClearEditText
+            android:id="@+id/recode_list_etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="请输入订单号"
+            android:paddingLeft="5dp"
+            android:textSize="@dimen/TextSize16"
+            android:textColor="@color/grey_666666"
+            android:inputType="number"
+            android:digits="0123456789abcdefghigklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            android:maxLength="35"
+            />
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/gray_e5e5e5"
+            />
+        <ImageView
+            android:id="@+id/recode_list_imgScan"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/scan_open_icon"
+            android:paddingLeft="20dp"
+            android:paddingRight="30dp"
+            />
+        <View
+            style="@style/divider_line1dp_h"/>
+        <ImageView
+            android:id="@+id/recode_list_imgSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/search_icon"
+            android:layout_alignParentRight="true"
+            android:paddingLeft="20dp"
+            android:paddingRight="30dp"
+            />
+
+    </LinearLayout>
+
+    <View
+        style="@style/divider_line1dp"
+        ></View>
+
+    <com.wanding.face.view.XListView
+        android:id="@+id/auth_recode_list_xListView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white_f2f2f2"
+        android:divider="@color/white_f2f2f2"
+        android:dividerHeight="1dp"
+        />
+
+</LinearLayout>

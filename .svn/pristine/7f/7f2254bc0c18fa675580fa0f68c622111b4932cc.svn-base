@@ -1,0 +1,747 @@
+package com.wanding.face.print;
+
+
+import android.util.Log;
+
+
+import com.sym.libs.usbprint.USBPrinter;
+import com.wanding.face.App;
+import com.wanding.face.Constants;
+import com.wanding.face.bean.AuthResultResponse;
+import com.wanding.face.bean.CardVerificaResData;
+import com.wanding.face.bean.OrderDetailData;
+import com.wanding.face.bean.PayTypeBean;
+import com.wanding.face.bean.RefundResData;
+import com.wanding.face.bean.ShiftResData;
+import com.wanding.face.bean.SubReocrdSummaryResData;
+import com.wanding.face.bean.SubTimeSummaryResData;
+import com.wanding.face.bean.SubTotalSummaryResData;
+import com.wanding.face.bean.SummaryResData;
+import com.wanding.face.bean.UserBean;
+import com.wanding.face.bean.WdPreAuthHistoryVO;
+import com.wanding.face.jiabo.device.bean.PosScanpayResData;
+import com.wanding.face.utils.DateTimeUtil;
+import com.wanding.face.utils.DecimalUtil;
+import com.wanding.face.utils.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Time: 2019/11/6
+ * Author:Administrator
+ * Description:usb打印小票工具类
+ */
+public class USBPrintTextUtil {
+
+
+
+    /** 支付完成打印等待时间打印消费有礼 */
+    public static final long TIME = 3000;
+
+    /** 统一空格字符串   */
+    private static final String twoSpaceStr = "  ";
+    private static final String threeSpaceStr = "   ";
+    private static final String fiveSpaceStr = "     ";
+    private static final String sixSpaceStr = "      ";
+    private static final String sevenSpaceStr = "       ";
+    private static final String eightSpaceStr = "        ";
+    private static final String nineSpaceStr = "         ";
+
+    private static String DOTTED_LINE = "-------------------------------";
+    private static String DOTTED_LINE_X = "----x---------------------x----";
+    private static String TEL = "悦收银客服电话  400-888-5400";
+
+    /**
+     * 二维码大小
+     */
+    private static final int QRCODE_SIZE = 12;
+
+
+    public static String getDateTimeFormatStr(String timeStr) {
+        //20160325160000
+        if(Utils.isNotEmpty(timeStr)){
+            if(timeStr.length()>=14){
+                String year = timeStr.substring(0,4);
+                String month = timeStr.substring(4,6);
+                String day = timeStr.substring(6,8);
+                String hour = timeStr.substring(8,10);
+                String minute = timeStr.substring(10,12);
+                String second = timeStr.substring(12);
+                Log.e("日期解析：",year+"-"+month+"-"+day+" "+hour+":"+minute+":"+second);
+                return year+"-"+month+"-"+day+" "+hour+":"+minute+":"+second;
+            }
+        }
+
+        return "";
+    }
+
+
+    /**
+     * 付款成功
+     */
+    public static void payOrderText(UserBean userBean, PosScanpayResData resData){
+
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        App.usbPrinter.printTextNewLine("交易类型："+Constants.getPayWay("0",resData.getPay_type(),true));
+        String outTradeNoStr = resData.getOut_trade_no();
+        String outTradeNo = "";
+        String outTradeNoSuffix = "";
+        if(Utils.isNotEmpty(outTradeNoStr)&&outTradeNoStr.length()>=32){
+            outTradeNo = outTradeNoStr.substring(0,24);
+            outTradeNoSuffix = outTradeNoStr.substring(24);
+            App.usbPrinter.printTextNewLine("订单号："+outTradeNo);
+            App.usbPrinter.printTextNewLine("        "+outTradeNoSuffix);
+        }else{
+            outTradeNo = outTradeNoStr;
+            App.usbPrinter.printTextNewLine("订单号："+outTradeNo);
+        }
+        App.usbPrinter.printTextNewLine("日期/时间："+getDateTimeFormatStr(resData.getEnd_time()));
+        App.usbPrinter.printTextNewLine("金额：RMB "+DecimalUtil.branchToElement(resData.getTotal_fee()));
+        App.usbPrinter.printTextNewLine("备注：");
+        App.usbPrinter.printTextNewLine("持卡人签名：");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("  交易金额不足300.00元，无需签名");
+        App.usbPrinter.printTextNewLine("  本人确认以上交易，同意将其记入本卡账户");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        /* 设置退款二维码 */
+        App.usbPrinter.printLine(1);
+        App.usbPrinter.setAlign(1);
+        App.usbPrinter.printQRCode(outTradeNoStr,QRCODE_SIZE);//打印二维码
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("退款时直接扫描上方二维码!");
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+
+    }
+
+    /**
+     * 订单详情
+     */
+    public static void orderDetailText(UserBean userBean,OrderDetailData order){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        App.usbPrinter.printTextNewLine("交易类型："+Constants.getPayWay(order.getOrderType(),order.getPayWay(),true));
+        String outTradeNoStr = order.getOrderId();
+        String outTradeNo = "";
+        String outTradeNoSuffix = "";
+        if(Utils.isNotEmpty(outTradeNoStr)&&outTradeNoStr.length()>=32){
+            outTradeNo = outTradeNoStr.substring(0,24);
+            outTradeNoSuffix = outTradeNoStr.substring(24);
+            App.usbPrinter.printTextNewLine("订单号："+outTradeNo);
+            App.usbPrinter.printTextNewLine("        "+outTradeNoSuffix);
+        }else{
+            outTradeNo = outTradeNoStr;
+            App.usbPrinter.printTextNewLine("订单号："+outTradeNo);
+        }
+        String dateStr = DateTimeUtil.stampToDate(Long.parseLong(order.getPayTime()));
+        Log.e("日期转换结果：",dateStr);
+        App.usbPrinter.printTextNewLine("日期/时间："+dateStr);
+        App.usbPrinter.printTextNewLine("金额：RMB "+DecimalUtil.StringToPrice(order.getGoodsPrice()));
+        App.usbPrinter.printTextNewLine("备注：明细补打");
+        App.usbPrinter.printTextNewLine("持卡人签名：");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("  交易金额不足300.00元，无需签名");
+        App.usbPrinter.printTextNewLine("  本人确认以上交易，同意将其记入本卡账户");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        /**
+         * 判断是支付交易还是退款交易 0正向 ,1退款,其中正向包括支付交易和退款交易
+         * orderType:交易类型 0正向（支付交易） ,1反向（退款交易）
+         * status：交易状态 	0准备支付1支付完成2支付失败3.包括退款4.全部退款5.支付未知
+         */
+        if(Utils.isNotEmpty(outTradeNoStr)){
+            String num = outTradeNoStr.substring(0,2);
+            if("20".equals(num)&&"0".equals(order.getOrderType())&&"1".equals(order.getStatus())){
+                /* 设置退款二维码 */
+                App.usbPrinter.printLine(1);
+                App.usbPrinter.setAlign(1);
+                App.usbPrinter.printQRCode(outTradeNoStr,QRCODE_SIZE);//打印二维码
+                App.usbPrinter.printLine(1);//打印空行
+                App.usbPrinter.printTextNewLine("退款时直接扫描上方二维码!");
+                App.usbPrinter.printTextNewLine(DOTTED_LINE);
+            }
+        }
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+
+    /**
+     * 消费有礼
+     */
+    public static void cardStockQRcode(String url){
+        App.usbPrinter.printLine(1);
+        App.usbPrinter.setAlign(1);
+        App.usbPrinter.printQRCode(url,QRCODE_SIZE);//打印二维码
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+
+    }
+
+    /**
+     * 退款成功打印
+     */
+    public static void refundText(UserBean userBean,RefundResData order){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        App.usbPrinter.printTextNewLine("交易类型："+Constants.getPayWay("1",order.getPay_type(),true) );
+
+
+        String outRefundNoStr = order.getOut_refund_no();
+        String outRefundNo = "";
+        String outRefundNoNoSuffix = "";
+        if(Utils.isNotEmpty(outRefundNoStr)&&outRefundNoStr.length()>=32){
+            outRefundNo = outRefundNoStr.substring(0,24);
+            outRefundNoNoSuffix = outRefundNoStr.substring(24);
+            App.usbPrinter.printTextNewLine("订单号："+outRefundNo);
+            App.usbPrinter.printTextNewLine("        "+outRefundNoNoSuffix);
+
+        }else{
+            outRefundNo = outRefundNoStr;
+            App.usbPrinter.printTextNewLine("订单号："+outRefundNo);
+        }
+        App.usbPrinter.printTextNewLine("原订单号："+order.getOut_trade_no());
+//        esc.addText( "日期/时间："+getDateTimeFormatStr(order.getEnd_time()) +"\n" );
+//        App.usbPrinter.printTextNewLine("日期/时间："+getDateTimeFormatStr(order.getEnd_time()));
+        App.usbPrinter.printTextNewLine("金额：RMB "+DecimalUtil.branchToElement(order.getRefund_fee()));
+        App.usbPrinter.printTextNewLine("备注：");
+        App.usbPrinter.printTextNewLine("持卡人签名：");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("  交易金额不足300.00元，无需签名");
+        App.usbPrinter.printTextNewLine("  本人确认以上交易，同意将其记入本卡账户");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+
+    /**
+     * 交班退出打印(交班记录详情补打)
+     */
+    public static void shiftExitText(UserBean userBean, ShiftResData summary, String staffName){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        //结算时间
+        ArrayList<SubTimeSummaryResData> timeList = summary.getTimeList();
+        SubTimeSummaryResData subStartTime = null;
+        SubTimeSummaryResData subEndTime = null;
+        for (int i = 0; i < timeList.size(); i++) {
+            subStartTime = timeList.get(0);
+            subEndTime = timeList.get(1);
+
+        }
+        Log.e("打印开始时间：",subStartTime.getType());
+        Log.e("打印结束时间：",subEndTime.getType());
+        App.usbPrinter.printTextNewLine("开始时间："+ subStartTime.getType());
+        App.usbPrinter.printTextNewLine("结束时间："+ subEndTime.getType());
+        if(Utils.isNotEmpty(staffName)){
+            App.usbPrinter.printTextNewLine( "交 班 人："+staffName);
+        }else{
+            App.usbPrinter.printTextNewLine("交 班 人："+"");
+        }
+        App.usbPrinter.printTextNewLine("类型/TYPE  笔数/SUM  金额/AMOUNT");
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        //交易明细
+        ArrayList<SubReocrdSummaryResData> reocrdList = summary.getReocrdList();
+        for (int i = 0; i < reocrdList.size(); i++) {
+            SubReocrdSummaryResData reocrd = reocrdList.get(i);
+            String mode = reocrd.getMode();
+            if("WX".equals(mode)){
+                String type = reocrd.getType();
+                if("noRefund".equals(type)){
+                    App.usbPrinter.printTextNewLine("微信"+nineSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }else if("refund".equals(type)){
+                    App.usbPrinter.printTextNewLine("微信退款"+fiveSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }
+            }else if("ALI".equals(mode)){
+                String type = reocrd.getType();
+                if("noRefund".equals(type)){
+                    App.usbPrinter.printTextNewLine("支付宝"+sevenSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }else if("refund".equals(type)){
+                    App.usbPrinter.printTextNewLine("支付宝退款"+threeSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }
+            }else if("BEST".equals(mode)){
+                String type = reocrd.getType();
+                if("noRefund".equals(type)){
+                    App.usbPrinter.printTextNewLine("翼支付"+sevenSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }else if("refund".equals(type)){
+                    App.usbPrinter.printTextNewLine("翼支付退款"+threeSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }
+            }else if("BANK".equals(mode)){
+                String type = reocrd.getType();
+                if("noRefund".equals(type)){
+                    App.usbPrinter.printTextNewLine("银行卡消费"+threeSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }else if("refund".equals(type)){
+                    App.usbPrinter.printTextNewLine("银行卡退款"+threeSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }
+            }else if("UNIONPAY".equals(mode)){
+                String type = reocrd.getType();
+                if("noRefund".equals(type)){
+                    App.usbPrinter.printTextNewLine("银联二维码"+threeSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }else if("refund".equals(type)){
+                    App.usbPrinter.printTextNewLine("银联二维码退款"+twoSpaceStr+reocrd.getTotalCount()+nineSpaceStr+reocrd.getMoney());
+                }
+            }
+        }
+        //总计
+        ArrayList<SubTotalSummaryResData> totalList = summary.getTotalList();
+        SubTotalSummaryResData total = null;
+        for (int i = 0; i < totalList.size(); i++) {
+            total = totalList.get(i);
+        }
+        App.usbPrinter.printTextNewLine("总计"+nineSpaceStr+total.getTotalCount()+nineSpaceStr+total.getMoney());
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+
+    /**
+     * 汇总信息打印
+     */
+    public static void summaryText(UserBean userBean, SummaryResData summary, String dateStr){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        App.usbPrinter.printTextNewLine("日期/时间："+dateStr);
+        App.usbPrinter.printTextNewLine("类型/TYPE  笔数/SUM  金额/AMOUNT");
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        //交易明细
+        List<PayTypeBean> lsPayType = new ArrayList<PayTypeBean>();
+        lsPayType = summary.getOrderSumList();
+        //银行卡总金额  = 贷记卡总金额 + 借记卡总金额
+        double sumMoney = 0;
+        //银行卡总笔数 = 贷记卡总笔数 + 借记卡总笔数
+        int sumNum = 0;
+        //标示是否有银行卡记录
+        boolean isBank = false;
+        for (int i = 0; i < lsPayType.size(); i++) {
+            PayTypeBean payType = lsPayType.get(i);
+            String mode = payType.getPayWay();
+            if("WX".equals(mode)){
+                Double amount = payType.getAmount();
+                Integer total = payType.getTotal();
+
+                double amount_dou = amount.doubleValue();
+                int total_int = total.intValue();
+                App.usbPrinter.printTextNewLine("微信支付"+fiveSpaceStr+String.valueOf(total_int)+nineSpaceStr+String.valueOf(amount_dou));
+            }else if("ALI".equals(mode)){
+                Double amount = payType.getAmount();
+                Integer total = payType.getTotal();
+
+                double amount_dou = amount.doubleValue();
+                int total_int = total.intValue();
+                App.usbPrinter.printTextNewLine("支付宝支付"+threeSpaceStr+String.valueOf(total_int)+nineSpaceStr+String.valueOf(amount_dou));
+            }else if("BEST".equals(mode)){
+                Double amount = payType.getAmount();
+                Integer total = payType.getTotal();
+
+                double amount_dou = amount.doubleValue();
+                int total_int = total.intValue();
+                App.usbPrinter.printTextNewLine("翼支付支付"+threeSpaceStr+String.valueOf(total_int)+nineSpaceStr+String.valueOf(amount_dou));
+            }else if("UNIONPAY".equals(mode)){
+                Double amount = payType.getAmount();
+                Integer total = payType.getTotal();
+
+                double amount_dou = amount.doubleValue();
+                int total_int = total.intValue();
+                App.usbPrinter.printTextNewLine("银联二维码"+threeSpaceStr+String.valueOf(total_int)+nineSpaceStr+String.valueOf(amount_dou));
+            }else if("DEBIT".equals(mode) || "CREDIT".equals(mode)){
+                Double amount = payType.getAmount();
+                Integer total = payType.getTotal();
+
+
+
+                double amount_dou = amount.doubleValue();
+                sumMoney = sumMoney + amount_dou;
+                int total_int = total.intValue();
+                sumNum = sumNum + total_int;
+
+                isBank = true;
+
+
+            }
+        }
+        if(isBank){
+            App.usbPrinter.printTextNewLine("银行卡消费"+threeSpaceStr+String.valueOf(sumNum)+nineSpaceStr+String.valueOf(sumMoney));
+        }
+        //总笔数
+        Integer sumTotal = summary.getSumTotal();
+        int sumTotal_int = sumTotal.intValue();
+        //总金额
+        Double sumAmt = summary.getSumAmt();
+        double sumAmt_dou = sumAmt.doubleValue();
+        App.usbPrinter.printTextNewLine("总计"+nineSpaceStr+String.valueOf(sumTotal_int)+nineSpaceStr+String.valueOf(sumAmt_dou));
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+
+    /**
+     * 会员卡劵核销成功打印
+     */
+    public static void cardVerificaText(UserBean userBean, CardVerificaResData resData){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        App.usbPrinter.printTextNewLine("卡劵名称："+resData.getTitle());
+        App.usbPrinter.printTextNewLine("核销劵码："+resData.getCode());
+        App.usbPrinter.printTextNewLine("核销状态：使用成功");
+        App.usbPrinter.printTextNewLine("使用时间："+DateTimeUtil.stampToDate(Long.parseLong(resData.getCreateTime())));
+        App.usbPrinter.printTextNewLine("备注：");
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+
+    /**
+     * 预授权
+     */
+    public static void authOrderText(UserBean userBean, AuthResultResponse resData){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        App.usbPrinter.printTextNewLine("交易类型："+Constants.getAuthPayTypeStr("1"));
+        App.usbPrinter.printTextNewLine("订单号："+resData.getOut_trade_no());
+        String channerTradeNoStr = resData.getChannel_trade_no();
+        String channerTradeNo = "";
+        if(Utils.isNotEmpty(channerTradeNoStr)){
+            channerTradeNo = channerTradeNoStr;
+        }
+        App.usbPrinter.printTextNewLine("渠道单号："+channerTradeNo);
+        App.usbPrinter.printTextNewLine("金额：RMB "+DecimalUtil.branchToElement(resData.getTotal_amount()));
+        App.usbPrinter.printTextNewLine("日期/时间："+resData.getEnd_time());
+        App.usbPrinter.printTextNewLine("备注：");
+
+        App.usbPrinter.printTextNewLine("备注：");
+        App.usbPrinter.printTextNewLine("持卡人签名：");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("  交易金额不足300.00元，无需签名");
+        App.usbPrinter.printTextNewLine("  本人确认以上交易，同意将其记入本卡账户");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        /* 设置二维码 */
+        App.usbPrinter.printLine(1);
+        App.usbPrinter.setAlign(1);
+        App.usbPrinter.printQRCode(resData.getOut_trade_no(),QRCODE_SIZE);//打印二维码
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("预授权完成/撤销可直接扫描上方二维码!");
+
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+
+    /**
+     * 预授权撤销
+     */
+    public static void authCancelOrderText(UserBean userBean,AuthResultResponse resData){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        App.usbPrinter.printTextNewLine("交易类型："+Constants.getAuthPayTypeStr("2"));
+        App.usbPrinter.printTextNewLine("订单号："+resData.getOut_trade_no());
+        String channerTradeNoStr = resData.getChannel_trade_no();
+        String channerTradeNo = "";
+        if(Utils.isNotEmpty(channerTradeNoStr)){
+            channerTradeNo = channerTradeNoStr;
+        }
+        App.usbPrinter.printTextNewLine("渠道单号："+channerTradeNo);
+        App.usbPrinter.printTextNewLine("金额：RMB "+DecimalUtil.branchToElement(resData.getTotal_amount()));
+        App.usbPrinter.printTextNewLine("日期/时间："+resData.getEnd_time());
+        App.usbPrinter.printTextNewLine("备注：" );
+        App.usbPrinter.printTextNewLine("持卡人签名：");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("  交易金额不足300.00元，无需签名");
+        App.usbPrinter.printTextNewLine("  本人确认以上交易，同意将其记入本卡账户");
+        App.usbPrinter.printLine(1);//打印空行
+
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+
+    /**
+     * 预授权完成
+     */
+    public static void authConfirmOrderText( UserBean userBean,AuthResultResponse resData){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        App.usbPrinter.printTextNewLine("交易类型："+Constants.getAuthPayTypeStr("3"));
+        App.usbPrinter.printTextNewLine("订单号："+resData.getOut_trade_no());
+        String channerTradeNoStr = resData.getChannel_trade_no();
+        String channerTradeNo = "";
+        if(Utils.isNotEmpty(channerTradeNoStr)){
+            channerTradeNo = channerTradeNoStr;
+        }
+        App.usbPrinter.printTextNewLine("渠道单号："+channerTradeNo);
+        App.usbPrinter.printTextNewLine("金额：RMB "+DecimalUtil.branchToElement(resData.getConsume_fee()));
+        App.usbPrinter.printTextNewLine("日期/时间："+resData.getEnd_time());
+        App.usbPrinter.printTextNewLine("备注：" );
+        App.usbPrinter.printTextNewLine("持卡人签名：");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("  交易金额不足300.00元，无需签名");
+        App.usbPrinter.printTextNewLine("  本人确认以上交易，同意将其记入本卡账户");
+        App.usbPrinter.printLine(1);//打印空行
+
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+    /**
+     * 预授权完成撤销
+     */
+    public static void authConfirmCancelOrderText(UserBean userBean,AuthResultResponse resData){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        App.usbPrinter.printTextNewLine("交易类型："+Constants.getAuthPayTypeStr("4") );
+        App.usbPrinter.printTextNewLine("订单号："+resData.getOut_trade_no());
+        String channerTradeNoStr = resData.getChannel_trade_no();
+        String channerTradeNo = "";
+        if(Utils.isNotEmpty(channerTradeNoStr)){
+            channerTradeNo = channerTradeNoStr;
+        }
+        App.usbPrinter.printTextNewLine("渠道单号："+channerTradeNo);
+        App.usbPrinter.printTextNewLine("金额：RMB "+DecimalUtil.branchToElement(resData.getRefund_fee()));
+        App.usbPrinter.printTextNewLine( "日期/时间："+resData.getEnd_time());
+        App.usbPrinter.printTextNewLine( "备注：" );
+        App.usbPrinter.printTextNewLine("持卡人签名：");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("  交易金额不足300.00元，无需签名");
+        App.usbPrinter.printTextNewLine("  本人确认以上交易，同意将其记入本卡账户");
+        App.usbPrinter.printLine(1);//打印空行
+
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+
+
+    /**
+     * 预授权交易详情
+     */
+    public static void authOrderDetailText( UserBean userBean,WdPreAuthHistoryVO order){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("收款凭据");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.bold(false);
+        /* 打印文字 */
+        App.usbPrinter.printTextNewLine("商户名称："+userBean.getMname());
+        App.usbPrinter.printTextNewLine("终端号："+userBean.getTerminal_id());
+        /**
+         * payAuthStatus:1 预授权 2撤销 3押金消费 4押金退款
+         */
+        String payAuthStatus = order.getPayAuthStatus();
+        if(Utils.isNotEmpty(payAuthStatus)){
+            App.usbPrinter.printTextNewLine("交易类型："+Constants.getAuthPayTypeStr(order.getPayAuthStatus()));
+            App.usbPrinter.printTextNewLine("订单号："+order.getMchntOrderNo());
+            String channerTradeNoStr = order.getChannelOrderNo();
+            String channerTradeNo = "";
+            if(Utils.isNotEmpty(channerTradeNoStr)){
+                channerTradeNo = channerTradeNoStr;
+            }
+            App.usbPrinter.printTextNewLine("渠道单号："+channerTradeNo);
+            String payTime = "";
+            if("1".equals(payAuthStatus)){
+                App.usbPrinter.printTextNewLine("押金金额：RMB "+DecimalUtil.StringToPrice(order.getOrderAmt()));
+                Long payTimeStr = order.getGmtCreate();
+                if(payTimeStr !=null){
+                    payTime = DateTimeUtil.stampToFormatDate(payTimeStr, "yyyy-MM-dd HH:mm:ss");
+                }
+                App.usbPrinter.printTextNewLine("日期/时间："+payTime);
+            }else if("2".equals(payAuthStatus)){
+                App.usbPrinter.printTextNewLine("押金金额：RMB "+DecimalUtil.StringToPrice(order.getOrderAmt()));
+                Long payTimeStr = order.getGmtModified();
+                if(payTimeStr !=null){
+                    payTime = DateTimeUtil.stampToFormatDate(payTimeStr, "yyyy-MM-dd HH:mm:ss");
+                }
+                App.usbPrinter.printTextNewLine("日期/时间："+payTime);
+            }else if("3".equals(payAuthStatus)){
+                App.usbPrinter.printTextNewLine("押金金额：RMB "+DecimalUtil.StringToPrice(order.getOrderAmt()));
+                App.usbPrinter.printTextNewLine("消费金额：RMB "+DecimalUtil.StringToPrice(order.getConsumeFee()));
+                Long payTimeStr = order.getGmtModified();
+                if(payTimeStr !=null){
+                    payTime = DateTimeUtil.stampToFormatDate(payTimeStr, "yyyy-MM-dd HH:mm:ss");
+                }
+                App.usbPrinter.printTextNewLine("日期/时间："+payTime);
+            }else if("4".equals(payAuthStatus)){
+                App.usbPrinter.printTextNewLine("原订单号："+order.getOrgOrderNo());
+                App.usbPrinter.printTextNewLine("押金金额：RMB "+DecimalUtil.StringToPrice(order.getOrderAmt()));
+                App.usbPrinter.printTextNewLine("消费金额：RMB "+DecimalUtil.StringToPrice(order.getConsumeFee()));
+                App.usbPrinter.printTextNewLine("退款金额：RMB "+DecimalUtil.StringToPrice(order.getRefundFee()));
+                Long payTimeStr = order.getGmtModified();
+                if(payTimeStr !=null){
+                    payTime = DateTimeUtil.stampToFormatDate(payTimeStr, "yyyy-MM-dd HH:mm:ss");
+                }
+                App.usbPrinter.printTextNewLine("日期/时间："+payTime);
+            }
+        }
+
+        App.usbPrinter.printTextNewLine( "备注：交易明细");
+
+        App.usbPrinter.printTextNewLine("持卡人签名：");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine("  交易金额不足300.00元，无需签名");
+        App.usbPrinter.printTextNewLine("  本人确认以上交易，同意将其记入本卡账户");
+        App.usbPrinter.printLine(1);//打印空行
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        if(Utils.isNotEmpty(payAuthStatus)){
+//            App.usbPrinter.printTextNewLine("交易类型："+Constants.getAuthPayTypeStr(order.getPayAuthStatus()));
+//            App.usbPrinter.printTextNewLine("订单号："+order.getMchntOrderNo());
+            if("1".equals(payAuthStatus)){
+                /* 设置二维码 */
+                App.usbPrinter.printLine(1);
+                App.usbPrinter.setAlign(1);
+                App.usbPrinter.printQRCode(order.getMchntOrderNo(),QRCODE_SIZE);//打印二维码
+                App.usbPrinter.printLine(1);//打印空行
+                App.usbPrinter.printTextNewLine("预授权完成/撤销可直接扫描上方二维码!");
+
+            }
+        }
+        App.usbPrinter.setAlign(0);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE);
+        App.usbPrinter.printTextNewLine(TEL);
+        App.usbPrinter.printTextNewLine(DOTTED_LINE_X);
+        App.usbPrinter.printLine(3);
+        App.usbPrinter.cutPager();
+    }
+
+
+
+    /**
+     * USB打印模板方法说明
+     */
+    public static void printText(){
+        App.usbPrinter.bold(true);//是否加粗
+        App.usbPrinter.setTextSize(3);//字体大小
+        App.usbPrinter.setAlign(1);//居中显示
+        App.usbPrinter.printTextNewLine("标题");
+        App.usbPrinter.printLine(1);//打印1个空行
+        App.usbPrinter.setTextSize(0);
+        App.usbPrinter.setAlign(0);//居左对齐
+        App.usbPrinter.bold(false);//不加粗正常
+        App.usbPrinter.printTextNewLine("出品单号："+"54545646456");
+        App.usbPrinter.printTextNewLine("出品员："+"偶家哈吉娃娃i哦我是等级");
+        App.usbPrinter.printBarCode("6936983800013");//打印一维码
+        App.usbPrinter.printLine(1);
+        App.usbPrinter.setAlign(1);
+        App.usbPrinter.printQRCode("6936983800013",QRCODE_SIZE
+        );//打印二维码
+        App.usbPrinter.printLine(5);
+        App.usbPrinter.cutPager();//切纸
+
+
+    }
+}

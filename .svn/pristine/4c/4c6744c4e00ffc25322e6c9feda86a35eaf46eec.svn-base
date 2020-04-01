@@ -1,0 +1,113 @@
+package com.wanding.face.payutil;
+
+import android.util.Log;
+
+import com.wanding.face.Constants;
+import com.wanding.face.bean.AuthBaseRequest;
+import com.wanding.face.bean.AuthConfirmReqDate;
+import com.wanding.face.bean.AuthRecodeListReqData;
+import com.wanding.face.bean.AuthRefreshOrderStateReqData;
+import com.wanding.face.bean.CheckPasswdReqData;
+import com.wanding.face.bean.FacePayAuthInfoReq;
+import com.wanding.face.bean.FacePayAuthInfoRes;
+import com.wanding.face.bean.FacePayUnifiedOrderReq;
+import com.wanding.face.bean.OrderListReqData;
+import com.wanding.face.bean.PosMemConsumeReqData;
+import com.wanding.face.bean.UserBean;
+import com.wanding.face.bean.WdPreAuthHistoryVO;
+import com.wanding.face.jiabo.device.bean.PosScanpayReqData;
+import com.wanding.face.utils.DateFormatUtils;
+import com.wanding.face.utils.FastJsonUtil;
+import com.wanding.face.utils.RandomStringGenerator;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 支付参数封装
+ */
+public class QueryParamsReqUtil {
+
+    private static final String TAG = "PayParamsReqUtil";
+
+    private static String pay_ver = "100";
+
+
+    /**
+     * 预授权记录查询
+     */
+    public static AuthRecodeListReqData queryAuthRecodeListReq(int pageNum,int pageNumCount,UserBean userBean,
+                                                               String orderId,String startTime,String endTime){
+    AuthRecodeListReqData reqData = new AuthRecodeListReqData();
+
+
+        reqData.setPageNumber(pageNum+"");
+        reqData.setPageSize(pageNumCount+"");
+        reqData.setTerminal_id(userBean.getTerminal_id());
+        reqData.setOut_trade_no(orderId);
+        reqData.setStartTime(startTime);
+        reqData.setEndTime(endTime);
+        return reqData;
+    }
+
+
+    /**
+     *  预授权交易详情
+     */
+    public static AuthConfirmReqDate authOrderDetailReq(UserBean userBean,WdPreAuthHistoryVO order){
+        AuthConfirmReqDate request = new AuthConfirmReqDate();
+
+        //terminal_trace	终端流水号（socket协议：长度为6位，Http协议：长度为32位）
+        String terminal_traceStr = RandomStringGenerator.getAFRandomNum();
+
+        String terminal_timeStr = DateFormatUtils.ISO_DATETIME_SS.format(new Date());
+
+        request.setPay_ver(pay_ver);
+        request.setService_id("014");
+        request.setMerchant_no(userBean.getMerchant_no());
+        request.setTerminal_id(userBean.getTerminal_id());
+        request.setTerminal_trace(terminal_traceStr);
+        request.setTerminal_time(terminal_timeStr);
+
+        request.setOut_trade_no(order.getMchntOrderNo());
+
+        //参数加签
+        Log.e("参数:",FastJsonUtil.toJSONString(request));
+        Map<String, Object> map = request.toMap();
+        Log.e("toMap参数:",map.toString());
+        String mapStr = FacePayUtils.getSign(map,userBean.getAccessToken());
+        request.setKey_sign(mapStr);
+        return request;
+    }
+
+    /**
+     * 校验操作员密码和修改操作员密码请求参数
+     */
+    public static CheckPasswdReqData checkPasswdReq(String passwd){
+        CheckPasswdReqData reqData = new CheckPasswdReqData();
+        reqData.setPassword(passwd);
+        reqData.setmCode(Constants.SERIAL_NUM);
+        reqData.setType(Constants.DEVICE_TYPE);
+        return reqData;
+    }
+
+    /**
+     * 轮询获取订单状态
+     */
+    public static AuthRefreshOrderStateReqData refreshOrderStateReq(UserBean userBean, String orderId){
+        AuthRefreshOrderStateReqData reqData = new AuthRefreshOrderStateReqData();
+
+
+
+        reqData.setMerchant_no(userBean.getMerchant_no());
+        reqData.setTerminal_id(userBean.getTerminal_id());
+        String terminal_traceStr = RandomStringGenerator.getAFRandomNum();
+        String terminal_timeStr = DateFormatUtils.ISO_DATETIME_SS.format(new Date());
+        reqData.setTerminal_trace(terminal_traceStr);
+        reqData.setTerminal_time(terminal_timeStr);
+        reqData.setOut_trade_no(orderId);
+        return reqData;
+    }
+
+}
